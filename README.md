@@ -440,30 +440,43 @@ elits-helper:
             const cardEl = card;
         
             // ========== PROCESS: Entity Badges ==========
-            function processEntityBadges(){
-              const eBadges = config.entity_badges || {};
+            // ========== PROCESS: Entity Badges ==========
+            function processEntityBadges() {
+              const allEntityBadgeGroups = [
+                config.entity_badges || {},
+                config.entity_badges_el1 || {},
+                config.entity_badges_el2 || {}, // <-- Dodaj več po potrebi
+              ];
               const currentEntityBadges = new Set();
-              for (const [k, bc] of Object.entries(eBadges)) {
-                if (!bc?.entity) continue;
-                const sbNum = parseInt(k) + 1;
-                if (!hass.states[bc.entity]) continue;
-                const conditionMet = checkAllConditions(bc.condition, hass);
-                const showBadge = conditionMet && !(bc.show_if_off === false && hass.states[bc.entity].state === 'off');
-                if (showBadge) {
-                  currentEntityBadges.add(sbNum);
-                  let dispVal;
+        
+              for (const eBadges of allEntityBadgeGroups) {
+                for (const [k, bc] of Object.entries(eBadges)) {
+                  if (!bc?.entity) continue;
+                  const sbNum = parseInt(k) + 1;
                   const stObj = hass.states[bc.entity];
+                  if (!stObj) continue;
+        
+                  const conditionMet = checkAllConditions(bc.condition, hass);
+                  const showBadge = conditionMet && !(bc.show_if_off === false && stObj.state === 'off');
+                  if (!showBadge) continue;
+        
+                  let dispVal;
                   if (bc.attribute && stObj.attributes[bc.attribute] !== undefined) {
                     dispVal = stObj.attributes[bc.attribute];
                   } else {
                     dispVal = stObj.state;
                   }
+        
                   if (bc.decimals !== undefined && !isNaN(parseFloat(dispVal))) {
                     dispVal = parseFloat(dispVal).toFixed(parseInt(bc.decimals));
                   }
-                  if (bc.show_unit !== false && stObj.attributes.unit_of_measurement) {
+        
+                  if (bc.show_unit !== false && !bc.attribute && stObj.attributes.unit_of_measurement) {
                     dispVal += stObj.attributes.unit_of_measurement;
                   }
+        
+                  currentEntityBadges.add(`${sbNum}`);
+        
                   createBadge({
                     subButtonNumber: sbNum,
                     content: dispVal,
@@ -477,8 +490,10 @@ elits-helper:
                   });
                 }
               }
+        
+              // Odstrani samo tiste, ki jih nismo prikazali
               for (let i = 1; i <= 10; i++) {
-                if (!currentEntityBadges.has(i)) {
+                if (!currentEntityBadges.has(`${i}`)) {
                   const sb = cardEl.querySelector(`.bubble-sub-button-${i}`);
                   if (sb) {
                     const badge = sb.querySelector('.entity-badge');
@@ -774,6 +789,904 @@ elits-helper:
         title: Entity Badges
         icon: mdi:tag-text
         name: entity_badges
+        schema:
+          - type: expandable
+            title: Sub-Button 1
+            name: '0'
+            schema:
+              - name: entity
+                label: Entity
+                selector:
+                  entity: {}
+              - name: attribute
+                label: Attribute (optional)
+                selector:
+                  attribute: {}
+              - name: color
+                label: Badge Color
+                selector:
+                  ui_color: {}
+              - name: text_color
+                label: Text Color
+                selector:
+                  ui_color: {}
+              - name: show_background
+                label: Show Background
+                default: true
+                selector:
+                  boolean: {}
+              - name: decimals
+                label: Decimal Places (for numbers)
+                selector:
+                  number:
+                    min: 0
+                    max: 5
+                    mode: slider
+                    step: 1
+              - name: show_unit
+                label: Show Unit
+                default: true
+                selector:
+                  boolean: {}
+              - name: show_if_off
+                label: Show When 'off'
+                default: true
+                selector:
+                  boolean: {}
+              - name: scale
+                label: Badge Size (scale)
+                default: 1
+                selector:
+                  number:
+                    min: 0.5
+                    max: 3
+                    mode: slider
+                    step: 0.1
+              - name: h_pos
+                label: Horizontal Position (px)
+                default: -8
+                selector:
+                  number:
+                    min: -500
+                    max: 500
+                    mode: slider
+                    step: 1
+              - name: v_pos
+                label: Vertical Position (px)
+                default: -8
+                selector:
+                  number:
+                    min: -100
+                    max: 100
+                    mode: slider
+                    step: 1
+              - name: condition
+                label: Condition (optional)
+                selector:
+                  condition: {}
+          - type: expandable
+            title: Sub-Button 2
+            name: '1'
+            schema:
+              - name: entity
+                label: Entity
+                selector:
+                  entity: {}
+              - name: attribute
+                label: Attribute (optional)
+                selector:
+                  attribute: {}
+              - name: color
+                label: Badge Color
+                selector:
+                  ui_color: {}
+              - name: text_color
+                label: Text Color
+                selector:
+                  ui_color: {}
+              - name: show_background
+                label: Show Background
+                default: true
+                selector:
+                  boolean: {}
+              - name: decimals
+                label: Decimal Places (for numbers)
+                selector:
+                  number:
+                    min: 0
+                    max: 5
+                    mode: slider
+                    step: 1
+              - name: show_unit
+                label: Show Unit
+                default: true
+                selector:
+                  boolean: {}
+              - name: show_if_off
+                label: Show When 'off'
+                default: true
+                selector:
+                  boolean: {}
+              - name: scale
+                label: Badge Size (scale)
+                default: 1
+                selector:
+                  number:
+                    min: 0.5
+                    max: 3
+                    mode: slider
+                    step: 0.1
+              - name: h_pos
+                label: Horizontal Position (px)
+                default: -8
+                selector:
+                  number:
+                    min: -500
+                    max: 500
+                    mode: slider
+                    step: 1
+              - name: v_pos
+                label: Vertical Position (px)
+                default: -8
+                selector:
+                  number:
+                    min: -100
+                    max: 100
+                    mode: slider
+                    step: 1
+              - name: condition
+                label: Condition (optional)
+                selector:
+                  condition: {}
+          - type: expandable
+            title: Sub-Button 3
+            name: '2'
+            schema:
+              - name: entity
+                label: Entity
+                selector:
+                  entity: {}
+              - name: attribute
+                label: Attribute (optional)
+                selector:
+                  attribute: {}
+              - name: color
+                label: Badge Color
+                selector:
+                  ui_color: {}
+              - name: text_color
+                label: Text Color
+                selector:
+                  ui_color: {}
+              - name: show_background
+                label: Show Background
+                default: true
+                selector:
+                  boolean: {}
+              - name: decimals
+                label: Decimal Places (for numbers)
+                selector:
+                  number:
+                    min: 0
+                    max: 5
+                    mode: slider
+                    step: 1
+              - name: show_unit
+                label: Show Unit
+                default: true
+                selector:
+                  boolean: {}
+              - name: show_if_off
+                label: Show When 'off'
+                default: true
+                selector:
+                  boolean: {}
+              - name: scale
+                label: Badge Size (scale)
+                default: 1
+                selector:
+                  number:
+                    min: 0.5
+                    max: 3
+                    mode: slider
+                    step: 0.1
+              - name: h_pos
+                label: Horizontal Position (px)
+                default: -8
+                selector:
+                  number:
+                    min: -500
+                    max: 500
+                    mode: slider
+                    step: 1
+              - name: v_pos
+                label: Vertical Position (px)
+                default: -8
+                selector:
+                  number:
+                    min: -100
+                    max: 100
+                    mode: slider
+                    step: 1
+              - name: condition
+                label: Condition (optional)
+                selector:
+                  condition: {}
+          - type: expandable
+            title: Sub-Button 4
+            name: '3'
+            schema:
+              - name: entity
+                label: Entity
+                selector:
+                  entity: {}
+              - name: attribute
+                label: Attribute (optional)
+                selector:
+                  attribute: {}
+              - name: color
+                label: Badge Color
+                selector:
+                  ui_color: {}
+              - name: text_color
+                label: Text Color
+                selector:
+                  ui_color: {}
+              - name: show_background
+                label: Show Background
+                default: true
+                selector:
+                  boolean: {}
+              - name: decimals
+                label: Decimal Places (for numbers)
+                selector:
+                  number:
+                    min: 0
+                    max: 5
+                    mode: slider
+                    step: 1
+              - name: show_unit
+                label: Show Unit
+                default: true
+                selector:
+                  boolean: {}
+              - name: show_if_off
+                label: Show When 'off'
+                default: true
+                selector:
+                  boolean: {}
+              - name: scale
+                label: Badge Size (scale)
+                default: 1
+                selector:
+                  number:
+                    min: 0.5
+                    max: 3
+                    mode: slider
+                    step: 0.1
+              - name: h_pos
+                label: Horizontal Position (px)
+                default: -8
+                selector:
+                  number:
+                    min: -500
+                    max: 500
+                    mode: slider
+                    step: 1
+              - name: v_pos
+                label: Vertical Position (px)
+                default: -8
+                selector:
+                  number:
+                    min: -100
+                    max: 100
+                    mode: slider
+                    step: 1
+              - name: condition
+                label: Condition (optional)
+                selector:
+                  condition: {}
+          - type: expandable
+            title: Sub-Button 5
+            name: '4'
+            schema:
+              - name: entity
+                label: Entity
+                selector:
+                  entity: {}
+              - name: attribute
+                label: Attribute (optional)
+                selector:
+                  attribute: {}
+              - name: color
+                label: Badge Color
+                selector:
+                  ui_color: {}
+              - name: text_color
+                label: Text Color
+                selector:
+                  ui_color: {}
+              - name: show_background
+                label: Show Background
+                default: true
+                selector:
+                  boolean: {}
+              - name: decimals
+                label: Decimal Places (for numbers)
+                selector:
+                  number:
+                    min: 0
+                    max: 5
+                    mode: slider
+                    step: 1
+              - name: show_unit
+                label: Show Unit
+                default: true
+                selector:
+                  boolean: {}
+              - name: show_if_off
+                label: Show When 'off'
+                default: true
+                selector:
+                  boolean: {}
+              - name: scale
+                label: Badge Size (scale)
+                default: 1
+                selector:
+                  number:
+                    min: 0.5
+                    max: 3
+                    mode: slider
+                    step: 0.1
+              - name: h_pos
+                label: Horizontal Position (px)
+                default: -8
+                selector:
+                  number:
+                    min: -500
+                    max: 500
+                    mode: slider
+                    step: 1
+              - name: v_pos
+                label: Vertical Position (px)
+                default: -8
+                selector:
+                  number:
+                    min: -100
+                    max: 100
+                    mode: slider
+                    step: 1
+              - name: condition
+                label: Condition (optional)
+                selector:
+                  condition: {}
+          - type: expandable
+            title: Sub-Button 6
+            name: '5'
+            schema:
+              - name: entity
+                label: Entity
+                selector:
+                  entity: {}
+              - name: attribute
+                label: Attribute (optional)
+                selector:
+                  attribute: {}
+              - name: color
+                label: Badge Color
+                selector:
+                  ui_color: {}
+              - name: text_color
+                label: Text Color
+                selector:
+                  ui_color: {}
+              - name: show_background
+                label: Show Background
+                default: true
+                selector:
+                  boolean: {}
+              - name: decimals
+                label: Decimal Places (for numbers)
+                selector:
+                  number:
+                    min: 0
+                    max: 5
+                    mode: slider
+                    step: 1
+              - name: show_unit
+                label: Show Unit
+                default: true
+                selector:
+                  boolean: {}
+              - name: show_if_off
+                label: Show When 'off'
+                default: true
+                selector:
+                  boolean: {}
+              - name: scale
+                label: Badge Size (scale)
+                default: 1
+                selector:
+                  number:
+                    min: 0.5
+                    max: 3
+                    mode: slider
+                    step: 0.1
+              - name: h_pos
+                label: Horizontal Position (px)
+                default: -8
+                selector:
+                  number:
+                    min: -500
+                    max: 500
+                    mode: slider
+                    step: 1
+              - name: v_pos
+                label: Vertical Position (px)
+                default: -8
+                selector:
+                  number:
+                    min: -100
+                    max: 100
+                    mode: slider
+                    step: 1
+              - name: condition
+                label: Condition (optional)
+                selector:
+                  condition: {}
+      - type: expandable
+        title: Entity Badges EL1
+        icon: mdi:tag-text
+        name: entity_badges_el1
+        schema:
+          - type: expandable
+            title: Sub-Button 1
+            name: '0'
+            schema:
+              - name: entity
+                label: Entity
+                selector:
+                  entity: {}
+              - name: attribute
+                label: Attribute (optional)
+                selector:
+                  attribute: {}
+              - name: color
+                label: Badge Color
+                selector:
+                  ui_color: {}
+              - name: text_color
+                label: Text Color
+                selector:
+                  ui_color: {}
+              - name: show_background
+                label: Show Background
+                default: true
+                selector:
+                  boolean: {}
+              - name: decimals
+                label: Decimal Places (for numbers)
+                selector:
+                  number:
+                    min: 0
+                    max: 5
+                    mode: slider
+                    step: 1
+              - name: show_unit
+                label: Show Unit
+                default: true
+                selector:
+                  boolean: {}
+              - name: show_if_off
+                label: Show When 'off'
+                default: true
+                selector:
+                  boolean: {}
+              - name: scale
+                label: Badge Size (scale)
+                default: 1
+                selector:
+                  number:
+                    min: 0.5
+                    max: 3
+                    mode: slider
+                    step: 0.1
+              - name: h_pos
+                label: Horizontal Position (px)
+                default: -8
+                selector:
+                  number:
+                    min: -500
+                    max: 500
+                    mode: slider
+                    step: 1
+              - name: v_pos
+                label: Vertical Position (px)
+                default: -8
+                selector:
+                  number:
+                    min: -100
+                    max: 100
+                    mode: slider
+                    step: 1
+              - name: condition
+                label: Condition (optional)
+                selector:
+                  condition: {}
+          - type: expandable
+            title: Sub-Button 2
+            name: '1'
+            schema:
+              - name: entity
+                label: Entity
+                selector:
+                  entity: {}
+              - name: attribute
+                label: Attribute (optional)
+                selector:
+                  attribute: {}
+              - name: color
+                label: Badge Color
+                selector:
+                  ui_color: {}
+              - name: text_color
+                label: Text Color
+                selector:
+                  ui_color: {}
+              - name: show_background
+                label: Show Background
+                default: true
+                selector:
+                  boolean: {}
+              - name: decimals
+                label: Decimal Places (for numbers)
+                selector:
+                  number:
+                    min: 0
+                    max: 5
+                    mode: slider
+                    step: 1
+              - name: show_unit
+                label: Show Unit
+                default: true
+                selector:
+                  boolean: {}
+              - name: show_if_off
+                label: Show When 'off'
+                default: true
+                selector:
+                  boolean: {}
+              - name: scale
+                label: Badge Size (scale)
+                default: 1
+                selector:
+                  number:
+                    min: 0.5
+                    max: 3
+                    mode: slider
+                    step: 0.1
+              - name: h_pos
+                label: Horizontal Position (px)
+                default: -8
+                selector:
+                  number:
+                    min: -500
+                    max: 500
+                    mode: slider
+                    step: 1
+              - name: v_pos
+                label: Vertical Position (px)
+                default: -8
+                selector:
+                  number:
+                    min: -100
+                    max: 100
+                    mode: slider
+                    step: 1
+              - name: condition
+                label: Condition (optional)
+                selector:
+                  condition: {}
+          - type: expandable
+            title: Sub-Button 3
+            name: '2'
+            schema:
+              - name: entity
+                label: Entity
+                selector:
+                  entity: {}
+              - name: attribute
+                label: Attribute (optional)
+                selector:
+                  attribute: {}
+              - name: color
+                label: Badge Color
+                selector:
+                  ui_color: {}
+              - name: text_color
+                label: Text Color
+                selector:
+                  ui_color: {}
+              - name: show_background
+                label: Show Background
+                default: true
+                selector:
+                  boolean: {}
+              - name: decimals
+                label: Decimal Places (for numbers)
+                selector:
+                  number:
+                    min: 0
+                    max: 5
+                    mode: slider
+                    step: 1
+              - name: show_unit
+                label: Show Unit
+                default: true
+                selector:
+                  boolean: {}
+              - name: show_if_off
+                label: Show When 'off'
+                default: true
+                selector:
+                  boolean: {}
+              - name: scale
+                label: Badge Size (scale)
+                default: 1
+                selector:
+                  number:
+                    min: 0.5
+                    max: 3
+                    mode: slider
+                    step: 0.1
+              - name: h_pos
+                label: Horizontal Position (px)
+                default: -8
+                selector:
+                  number:
+                    min: -500
+                    max: 500
+                    mode: slider
+                    step: 1
+              - name: v_pos
+                label: Vertical Position (px)
+                default: -8
+                selector:
+                  number:
+                    min: -100
+                    max: 100
+                    mode: slider
+                    step: 1
+              - name: condition
+                label: Condition (optional)
+                selector:
+                  condition: {}
+          - type: expandable
+            title: Sub-Button 4
+            name: '3'
+            schema:
+              - name: entity
+                label: Entity
+                selector:
+                  entity: {}
+              - name: attribute
+                label: Attribute (optional)
+                selector:
+                  attribute: {}
+              - name: color
+                label: Badge Color
+                selector:
+                  ui_color: {}
+              - name: text_color
+                label: Text Color
+                selector:
+                  ui_color: {}
+              - name: show_background
+                label: Show Background
+                default: true
+                selector:
+                  boolean: {}
+              - name: decimals
+                label: Decimal Places (for numbers)
+                selector:
+                  number:
+                    min: 0
+                    max: 5
+                    mode: slider
+                    step: 1
+              - name: show_unit
+                label: Show Unit
+                default: true
+                selector:
+                  boolean: {}
+              - name: show_if_off
+                label: Show When 'off'
+                default: true
+                selector:
+                  boolean: {}
+              - name: scale
+                label: Badge Size (scale)
+                default: 1
+                selector:
+                  number:
+                    min: 0.5
+                    max: 3
+                    mode: slider
+                    step: 0.1
+              - name: h_pos
+                label: Horizontal Position (px)
+                default: -8
+                selector:
+                  number:
+                    min: -500
+                    max: 500
+                    mode: slider
+                    step: 1
+              - name: v_pos
+                label: Vertical Position (px)
+                default: -8
+                selector:
+                  number:
+                    min: -100
+                    max: 100
+                    mode: slider
+                    step: 1
+              - name: condition
+                label: Condition (optional)
+                selector:
+                  condition: {}
+          - type: expandable
+            title: Sub-Button 5
+            name: '4'
+            schema:
+              - name: entity
+                label: Entity
+                selector:
+                  entity: {}
+              - name: attribute
+                label: Attribute (optional)
+                selector:
+                  attribute: {}
+              - name: color
+                label: Badge Color
+                selector:
+                  ui_color: {}
+              - name: text_color
+                label: Text Color
+                selector:
+                  ui_color: {}
+              - name: show_background
+                label: Show Background
+                default: true
+                selector:
+                  boolean: {}
+              - name: decimals
+                label: Decimal Places (for numbers)
+                selector:
+                  number:
+                    min: 0
+                    max: 5
+                    mode: slider
+                    step: 1
+              - name: show_unit
+                label: Show Unit
+                default: true
+                selector:
+                  boolean: {}
+              - name: show_if_off
+                label: Show When 'off'
+                default: true
+                selector:
+                  boolean: {}
+              - name: scale
+                label: Badge Size (scale)
+                default: 1
+                selector:
+                  number:
+                    min: 0.5
+                    max: 3
+                    mode: slider
+                    step: 0.1
+              - name: h_pos
+                label: Horizontal Position (px)
+                default: -8
+                selector:
+                  number:
+                    min: -500
+                    max: 500
+                    mode: slider
+                    step: 1
+              - name: v_pos
+                label: Vertical Position (px)
+                default: -8
+                selector:
+                  number:
+                    min: -100
+                    max: 100
+                    mode: slider
+                    step: 1
+              - name: condition
+                label: Condition (optional)
+                selector:
+                  condition: {}
+          - type: expandable
+            title: Sub-Button 6
+            name: '5'
+            schema:
+              - name: entity
+                label: Entity
+                selector:
+                  entity: {}
+              - name: attribute
+                label: Attribute (optional)
+                selector:
+                  attribute: {}
+              - name: color
+                label: Badge Color
+                selector:
+                  ui_color: {}
+              - name: text_color
+                label: Text Color
+                selector:
+                  ui_color: {}
+              - name: show_background
+                label: Show Background
+                default: true
+                selector:
+                  boolean: {}
+              - name: decimals
+                label: Decimal Places (for numbers)
+                selector:
+                  number:
+                    min: 0
+                    max: 5
+                    mode: slider
+                    step: 1
+              - name: show_unit
+                label: Show Unit
+                default: true
+                selector:
+                  boolean: {}
+              - name: show_if_off
+                label: Show When 'off'
+                default: true
+                selector:
+                  boolean: {}
+              - name: scale
+                label: Badge Size (scale)
+                default: 1
+                selector:
+                  number:
+                    min: 0.5
+                    max: 3
+                    mode: slider
+                    step: 0.1
+              - name: h_pos
+                label: Horizontal Position (px)
+                default: -8
+                selector:
+                  number:
+                    min: -500
+                    max: 500
+                    mode: slider
+                    step: 1
+              - name: v_pos
+                label: Vertical Position (px)
+                default: -8
+                selector:
+                  number:
+                    min: -100
+                    max: 100
+                    mode: slider
+                    step: 1
+              - name: condition
+                label: Condition (optional)
+                selector:
+                  condition: {}
+      - type: expandable
+        title: Entity Badges EL2
+        icon: mdi:tag-text
+        name: entity_badges_el2
         schema:
           - type: expandable
             title: Sub-Button 1
