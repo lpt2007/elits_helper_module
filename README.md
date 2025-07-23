@@ -1,6 +1,6 @@
 # ELITS Helper
 
-**Version:** v0.02  
+**Version:** v0.03  
 **Creator:** lpt2007
 
 > [!IMPORTANT] 
@@ -48,7 +48,7 @@ elits-helper:
 ```yaml
 elits-helper:
     name: "ELITS Helper"
-    version: "v0.02"
+    version: "v0.03"
     creator: "lpt2007"
     link: "https://github.com/Clooos/Bubble-Card/discussions/XXXX"
 
